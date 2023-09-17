@@ -1,19 +1,17 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Requests\User\CreateUserValidator;
+use App\Requests\User\LoginUserValidator;
 use App\Services\UserService;
-use App\Requests\Users\CreateUserValidator;
-use App\Requests\Users\LoginUserValidator;
 use Illuminate\Support\Facades\Auth;
 
-class RegisterController extends Controller
+class RegisterController extends BaseController
 {
     /**
      * @var UserService
      */
-    public $userService;
+    public UserService $userService;
 
     /**
      * @param UserService $userService
@@ -26,15 +24,13 @@ class RegisterController extends Controller
      * @param CreateUserValidator $createUserValidator
      * @return \Illuminate\Http\JsonResponse
      */
-    public function register(CreateUserValidator $createUserValidator)
-    {
+    public function register(CreateUserValidator $createUserValidator){
         if(!empty($createUserValidator->getErrors())){
             return response()->json($createUserValidator->getErrors(),406);
         }
         $user=$this->userService->createUser($createUserValidator->request()->all());
         $message['user']=$user;
         $message['token'] =  $user->createToken('MyApp')->plainTextToken;
-        return $this->sendResponse($message);('MyApp')->plainTextToken;
         return $this->sendResponse($message);
     }
 
@@ -42,8 +38,7 @@ class RegisterController extends Controller
      * @param LoginUserValidator $loginUserValidator
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(LoginUserValidator $loginUserValidator)
-    {
+    public function login(LoginUserValidator $loginUserValidator){
         if(!empty($loginUserValidator->getErrors())){
             return response()->json($loginUserValidator->getErrors(),406);
         }
