@@ -8,4 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 class ProductDetail extends Model
 {
     use HasFactory;
+
+    /**
+     * @var string[]
+     */
+    protected $fillable=[
+        'size',
+        'color',
+        'price',
+        'product_id',
+    ];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function product(){
+        return $this->belongsTo(Product::class,'product_id','id');
+    }
 }
