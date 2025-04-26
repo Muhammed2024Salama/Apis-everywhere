@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helper\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductDetail;
@@ -31,7 +32,8 @@ class ProductController extends BaseController
      */
     public function index()
     {
-        return $this->productService->getProducts();
+        $products = $this->productService->getProducts();
+        return ResponseHelper::success('Product list retrieved successfully', 'success', $products);
     }
 
     /**
@@ -40,13 +42,16 @@ class ProductController extends BaseController
      */
     public function store(CreateProductValidator $createProductValidator)
     {
-        if(!empty($createProductValidator->getErrors())){
-            return response()->json($createProductValidator->getErrors(),406);
+        if (!empty($createProductValidator->getErrors())) {
+            return ResponseHelper::error('error', $createProductValidator->getErrors(), 406);
         }
-        $data=$createProductValidator->request()->all();
-        $data['user_id']=Auth::user()->id;
-        $response=$this->productService->createProduct($data);
-        return $this->sendResponse($response);
+
+        $data = $createProductValidator->request()->all();
+        $data['user_id'] = Auth::user()->id;
+
+        $response = $this->productService->createProduct($data);
+
+        return ResponseHelper::success('Product created successfully', 'success', $response);
     }
 
     /**
@@ -56,21 +61,25 @@ class ProductController extends BaseController
      */
     public function update($id, UpdateProductValidator $updateProductValidator)
     {
-        if(!empty($updateProductValidator->getErrors())){
-            return response()->json($updateProductValidator->getErrors(),406);
+        if (!empty($updateProductValidator->getErrors())) {
+            return ResponseHelper::error('error', $updateProductValidator->getErrors(), 406);
         }
-        $data=$updateProductValidator->request()->all();
-        $data['user_id']=Auth::user()->id;
-        $response=$this->productService->updateProduct($id,$data);
-        return $this->sendResponse($response);
+
+        $data = $updateProductValidator->request()->all();
+        $data['user_id'] = Auth::user()->id;
+
+        $response = $this->productService->updateProduct($id, $data);
+
+        return ResponseHelper::success('Product updated successfully', 'success', $response);
     }
 
     /**
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id){
+    public function destroy($id)
+    {
         $this->productService->deleteProduct($id);
-        return $this->sendResponse("deleted Successfully");
+        return ResponseHelper::success('Deleted Successfully');
     }
 }
