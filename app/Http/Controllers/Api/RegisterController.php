@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
+use App\Helper\ResponseHelper;
 use App\Requests\User\CreateUserValidator;
 use App\Requests\User\LoginUserValidator;
 use App\Services\UserService;
@@ -16,42 +18,53 @@ class RegisterController extends BaseController
     /**
      * @param UserService $userService
      */
-    public function __construct(UserService $userService){
-        $this->userService=$userService;
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
     }
 
     /**
      * @param CreateUserValidator $createUserValidator
      * @return \Illuminate\Http\JsonResponse
      */
-    public function register(CreateUserValidator $createUserValidator){
-        if(!empty($createUserValidator->getErrors())){
-            return response()->json($createUserValidator->getErrors(),406);
+    public function register(CreateUserValidator $createUserValidator)
+    {
+        if (!empty($createUserValidator->getErrors())) {
+            return ResponseHelper::error('error', $createUserValidator->getErrors(), 406);
         }
-        $user=$this->userService->createUser($createUserValidator->request()->all());
-        $message['user']=$user;
-        $message['token'] =  $user->createToken('MyApp')->plainTextToken;
-        return $this->sendResponse($message);
+
+        $user = $this->userService->createUser($createUserValidator->request()->all());
+
+        $data = [
+            'user' => $user,
+            'token' => $user->createToken('MyApp')->plainTextToken
+        ];
+
+        return ResponseHelper::success('User registered successfully', 'success', $data);
     }
 
     /**
      * @param LoginUserValidator $loginUserValidator
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(LoginUserValidator $loginUserValidator){
-        if(!empty($loginUserValidator->getErrors())){
-            return response()->json($loginUserValidator->getErrors(),406);
+    public function login(LoginUserValidator $loginUserValidator)
+    {
+        if (!empty($loginUserValidator->getErrors())) {
+            return ResponseHelper::error('error', $loginUserValidator->getErrors(), 406);
         }
-        $request=$loginUserValidator->request();
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-            $user = Auth::user();
-            $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-            $success['name'] =  $user->name;
 
-            return $this->sendResponse($success);
+        $request = $loginUserValidator->request();
+
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            $user = Auth::user();
+            $data = [
+                'token' => $user->createToken('MyApp')->plainTextToken,
+                'name' => $user->name,
+            ];
+
+            return ResponseHelper::success('Login successful', 'success', $data);
         }
-        else{
-            return $this->sendResponse('Unauthorised', 'fail',401);
-        }
+
+        return ResponseHelper::error('fail', 'Unauthorized', 401);
     }
 }
